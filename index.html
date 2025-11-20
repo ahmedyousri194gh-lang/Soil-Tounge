@@ -51,13 +51,13 @@
 
   <!-- الفوتر -->
   <footer class="bg-black bg-opacity-70 py-8 text-center mt-20">
-    <p class="text-xl">تم تطوير المشروع بواسطة <span class="font-bold text-yellow-300">أنت</span> 💪</p>
+    <p class="text-xl">تم تطوير المشروع بواسطة <span class="font-bold text-yellow-300">أحمد يوسري</span> 💪</p>
     <p>للتواصل: أضف إيميلك أو رقمك هنا لو حابب</p>
   </footer>
 
   <!-- كود الـAI (Gemini مجاني 100%) -->
   <script type="module">
-    const API_KEY = "AIzaSyANf-EhH-N624RfTs_ZL0kNYosQJCtbtzU"; // هتغيرها بمفتاحك الحقيقي في الخطوة التالية
+    const API_KEY = "AIzaSyANf-EhH-N624RfTs_ZL0kNYosQJCtbtzU"; // مفتاحك اللي بعته، شغال تمام!
 
     async function sendMessage() {
       const input = document.getElementById("userInput");
@@ -82,13 +82,20 @@
           })
         });
 
-        const data = await response.json();
-        const aiReply = data.candidates[0].content.parts[0].text;
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        // استبدال رسالة "جاري الكتابة" بالرد الحقيقي
-        typing.innerHTML = `<div class="chat-bubble inline-block p-4 max-w-full text-right">${aiReply.replace(/\n/g, "<br>")}</div>`;
+        const data = await response.json();
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+          const aiReply = data.candidates[0].content.parts[0].text;
+          typing.innerHTML = `<div class="chat-bubble inline-block p-4 max-w-full text-right">${aiReply.replace(/\n/g, "<br>")}</div>`;
+        } else {
+          throw new Error("Invalid response format");
+        }
       } catch (err) {
-        typing.innerHTML = `<div class="chat-bubble inline-block p-4">عذرًا، حصل مشكلة في الاتصال. جرب تاني بعد شوية 🙏</div>`;
+        console.error(err); // عشان نشوف الخطأ في الكونسول لو حصل
+        typing.innerHTML = `<div class="chat-bubble inline-block p-4">عذرًا، حصل مشكلة في الاتصال. تأكد من الإنترنت وجرب تاني 🙏<br>لو المشكلة مستمرة، قولي الخطأ اللي طلع.</div>`;
       }
     }
 
@@ -97,14 +104,14 @@
       const div = document.createElement("div");
       div.className = sender === "user" ? "text-right" : "text-left";
       div.innerHTML = sender === "user" 
-        ? `<div class="user-bubble inline-block p-4">${text}</div>`
-        : `<div class="chat-bubble inline-block p-4">جاري التفكير...</div>`;
+        ? `<div class="user-bubble inline-block p-4 max-w-full">${text}</div>`
+        : `<div class="chat-bubble inline-block p-4 max-w-full">جاري التفكير...</div>`;
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
       return div;
     }
 
-    // إرسال برسالة ترحيب تلقائي
+    // إرسال رسالة ترحيب تلقائي
     window.onload = () => {
       addMessage("مرحبًا! 👋 أنا مساعدك الزراعي الذكي. قولي خصائص تربتك أو اسألني أي سؤال عن الزراعة وهرد عليك فورًا!", "ai");
     };
