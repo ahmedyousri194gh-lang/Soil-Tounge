@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>محصولي | أذكى تربة = أعلى إنتاجية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #1e3c1e, #2d5a2d); }
+    .chat-bubble { background: #25D366; color: white; border-radius: 20px 20px 0 20px; }
+    .user-bubble { background: #075e54; color: white; border-radius: 20px 20px 20px 0; }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+
+  <!-- الهيدر -->
+  <header class="bg-black bg-opacity-70 py-8 text-center">
+    <h1 class="text-5xl font-bold mb-4">🌱 محصولي</h1>
+    <p class="text-2xl">نظام ذكي لاختيار أفضل محصول حسب خصائص تربتك</p>
+  </header>
+
+  <!-- قسم الوصف -->
+  <section class="container mx-auto px-6 py-12 text-center">
+    <div class="bg-white bg-opacity-10 rounded-2xl p-10 max-w-4xl mx-auto">
+      <h2 class="text-4xl font-bold mb-6">عن المشروع</h2>
+      <p class="text-xl leading-relaxed">
+        النظام يقيس خصائص التربة (الرطوبة - الحموضة pH - النيتروجين - الفسفور - البوتاسيوم - الملوحة)<br>
+        ثم يستخدم الذكاء الاصطناعي ليحدد <span class="text-yellow-300 font-bold">أنسب محصول</span> يضمن أعلى إنتاجية وأقل خساير.
+      </p>
+    </div>
+  </section>
+
+  <!-- قسم جرب الـAI -->
+  <section class="container mx-auto px-6 py-12" id="ai-section">
+    <h2 class="text-4xl font-bold text-center mb-10">🤖 جرب الذكاء الاصطناعي الآن</h2>
+    
+    <div class="max-w-4xl mx-auto bg-white bg-opacity-10 rounded-2xl p-8">
+      <div id="chat" class="h-96 overflow-y-auto mb-6 space-y-4"></div>
+      
+      <div class="flex gap-3">
+        <input type="text" id="userInput" class="flex-1 p-4 rounded-xl bg-white text-black text-lg" 
+               placeholder="اكتب سؤالك أو خصائص التربة هنا.. مثال: تربتي pH=6.5 ورطوبتها عالية وفيها نيتروجين قليل" />
+        <button onclick="sendMessage()" class="bg-green-600 hover:bg-green-700 px-8 py-4 rounded-xl font-bold text-xl">
+          إرسال
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- الفوتر -->
+  <footer class="bg-black bg-opacity-70 py-8 text-center mt-20">
+    <p class="text-xl">تم تطوير المشروع بواسطة <span class="font-bold text-yellow-300">أنت</span> 💪</p>
+    <p>للتواصل: أضف إيميلك أو رقمك هنا لو حابب</p>
+  </footer>
+
+  <!-- كود الـAI (Gemini مجاني 100%) -->
+  <script type="module">
+    const API_KEY = "AIzaSyANf-EhH-N624RfTs_ZL0kNYosQJCtbtzU"; // هتغيرها بمفتاحك الحقيقي في الخطوة التالية
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const message = input.value.trim();
+      if (!message) return;
+
+      // عرض رسالة المستخدم
+      addMessage(message, "user");
+      input.value = "";
+
+      // عرض "جاري الكتابة..."
+      const typing = addMessage("جاري التفكير...", "ai");
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: 
+              "أنت خبير زراعي مصري ذكي جدًا. الزائر بيسألك عن أفضل محصول لتربته. رد بالعربي الفصحى المبسطة وبطريقة ودودة ومفيدة جدًا. لو أعطاك خصائص التربة، اقترح 3 محاصيل مناسبة مع سبب كل واحد ونصائح زراعية سريعة.\n\nسؤاله: " + message 
+            }]}]
+          })
+        });
+
+        const data = await response.json();
+        const aiReply = data.candidates[0].content.parts[0].text;
+
+        // استبدال رسالة "جاري الكتابة" بالرد الحقيقي
+        typing.innerHTML = `<div class="chat-bubble inline-block p-4 max-w-full text-right">${aiReply.replace(/\n/g, "<br>")}</div>`;
+      } catch (err) {
+        typing.innerHTML = `<div class="chat-bubble inline-block p-4">عذرًا، حصل مشكلة في الاتصال. جرب تاني بعد شوية 🙏</div>`;
+      }
+    }
+
+    function addMessage(text, sender) {
+      const chat = document.getElementById("chat");
+      const div = document.createElement("div");
+      div.className = sender === "user" ? "text-right" : "text-left";
+      div.innerHTML = sender === "user" 
+        ? `<div class="user-bubble inline-block p-4">${text}</div>`
+        : `<div class="chat-bubble inline-block p-4">جاري التفكير...</div>`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    // إرسال برسالة ترحيب تلقائي
+    window.onload = () => {
+      addMessage("مرحبًا! 👋 أنا مساعدك الزراعي الذكي. قولي خصائص تربتك أو اسألني أي سؤال عن الزراعة وهرد عليك فورًا!", "ai");
+    };
+  </script>
+</body>
+</html>
