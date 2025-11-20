@@ -48,51 +48,51 @@
     <p class="text-xl">تم التطوير بواسطة <span class="text-yellow-300 font-bold">احمد يسري و اياد ناصر</span></p>
   </footer>
 <script type="module">
-  const API_KEY = "";  // هتكتبه يدوي في المتصفح لما تجرب الموقع
+  // الـAPI Key هتكتبه في الكونسول بس (مش هيترفع في الكود)
+  let API_KEY = "";
 
   document.addEventListener("DOMContentLoaded", () => {
     const chat = document.getElementById("chat");
     const input = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendBtn");
 
-    addMessage("مرحبًا! 👋 أنا مساعدك الزراعي الذكي من xAI. اكتب خصائص تربتك (مثل pH، رطوبة، نيتروجين) وهقترحلك أفضل 3 محاصيل مع نصايح فورًا!", "ai");
+    addMessage("مرحباً! أنا مساعدك الزراعي الذكي من xAI. اكتب خصائص تربتك وهقترحلك أفضل المحاصيل فوراً!", "ai");
 
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
+    sendBtn.onclick = sendMessage;
+    input.addEventListener("keypress", e => e.key === "Enter" && sendMessage());
 
     async function sendMessage() {
+      if (!API_KEY) {
+        addMessage("من فضلك الصق المفتاح في الكونسول أولاً: API_KEY = \"مفتاحك\"", "ai");
+        return;
+      }
+
       const message = input.value.trim();
       if (!message) return;
 
       addMessage(message, "user");
       input.value = "";
-      const typing = addMessage("جاري التفكير بالذكاء الاصطناعي... 🤖", "ai");
+      const typing = addMessage("جاري التفكير بالذكاء الاصطناعي...", "ai");
 
       try {
         const res = await fetch("https://api.x.ai/v1/chat/completions", {
           method: "POST",
-          headers: { 
+          headers: {
             "Authorization": `Bearer ${API_KEY}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
             model: "grok-beta",
-            messages: [{ role: "user", content: "أنت خبير زراعي مصري محترف. رد بالعربي الفصحى المبسطة والودودة. بناءً على خصائص التربة هذه: '" + message + "'، اقترح 3 محاصيل مناسبة تمامًا مع: 1- السبب الرئيسي للاختيار، 2- توقع الإنتاجية، 3- نصيحة زراعية سريعة لكل محصول. اجعل الرد مشوقًا ومفيدًا." }],
-            max_tokens: 400,
+            messages: [{ role: "user", content: "خبير زراعي مصري: " + message + " → اقترح 3 محاصيل مثالية مع الأسباب + نصيحة سريعة لكل واحد. رد بالعربي وبطريقة ودودة." }],
             temperature: 0.7
           })
         });
-
-        if (!res.ok) {
-          throw new Error(`خطأ ${res.status}: تأكد من المفتاح أو الإنترنت`);
-        }
 
         const data = await res.json();
         const reply = data.choices[0].message.content;
         typing.innerHTML = `<div class="chat-bubble">${reply.replace(/\n/g, "<br>")}</div>`;
       } catch (err) {
-        console.error(err);
-        typing.innerHTML = `<div class="chat-bubble text-red-300">عذرًا! حصل خطأ: ${err.message}. جرب تاني أو تأكد من الـAPI Key. لو استمر، اعمل مفتاح جديد من console.x.ai</div>`;
+        typing.innerHTML = `<div class="chat-bubble text-red-300">خطأ: ${err.message}</div>`;
       }
     }
 
